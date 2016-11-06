@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 import os
 import multiprocessing
+import numpy.random as rng
+
 
 import tensorflow as tf
 from tensorflow.contrib.layers import variance_scaling_initializer
@@ -195,7 +197,7 @@ def get_data(train_or_test):
 def get_config():
     # prepare dataset
     dataset_train = get_data('train')
-    dataset_val = get_data('val')
+    #dataset_val = get_data('val')
 
     sess_config = get_default_sess_config(0.99)
 
@@ -207,17 +209,14 @@ def get_config():
         optimizer=tf.train.MomentumOptimizer(lr, 0.9, use_nesterov=True),
         callbacks=Callbacks([
             StatPrinter(), ModelSaver(),
-            InferenceRunner(dataset_val, [
-                ClassificationError('wrong-top1', 'val-error-top1'),
-                ClassificationError('wrong-top5', 'val-error-top5')]),
             ScheduledHyperParamSetter('learning_rate',
                                       [(30, 1e-2), (60, 1e-3), (85, 2e-4)]),
             HumanHyperParamSetter('learning_rate'),
         ]),
         session_config=sess_config,
         model=Model(),
-        step_per_epoch=5000,
-        max_epoch=110,
+        step_per_epoch=1000,
+        max_epoch=1,
     )
 
 if __name__ == '__main__':
