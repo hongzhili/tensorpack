@@ -14,15 +14,15 @@ from tensorflow.contrib.layers import variance_scaling_initializer
 from tensorpack import *
 from tensorpack.tfutils.symbolic_functions import *
 from tensorpack.tfutils.summary import *
-
+import numpy.random as rng
 """
 Training code of Pre-Activation version of ResNet on ImageNet. Work In Progress.
 Top1 error is now about 0.5% higher than fb.resnet.torch.
 """
 
 
-NR_GPU = 4
-TOTAL_BATCH_SIZE = 256
+NR_GPU = 1
+TOTAL_BATCH_SIZE = 128
 BATCH_SIZE = TOTAL_BATCH_SIZE / NR_GPU
 INPUT_SHAPE = 224
 
@@ -91,7 +91,7 @@ class Model(ModelDesc):
             50: ([3,4,6,3], bottleneck),
             101: ([3,4,23,3], bottleneck)
         }
-        defs, block_func = cfg[50]
+        defs, block_func = cfg[18]
 
         with argscope(Conv2D, nl=tf.identity, use_bias=False,
                 W_init=variance_scaling_initializer(mode='FAN_OUT')):
@@ -142,15 +142,15 @@ def get_data(train_or_test):
             h, w = img.shape[:2]
             area = h * w
             for _ in range(10):
-                targetArea = self.rng.uniform(0.08, 1.0) * area
-                aspectR = self.rng.uniform(0.75,1.333)
+                targetArea = rng.uniform(0.08, 1.0) * area
+                aspectR = rng.uniform(0.75,1.333)
                 ww = int(np.sqrt(targetArea * aspectR))
                 hh = int(np.sqrt(targetArea / aspectR))
-                if self.rng.uniform() < 0.5:
+                if rng.uniform() < 0.5:
                     ww, hh = hh, ww
                 if hh <= h and ww <= w:
-                    x1 = 0 if w == ww else self.rng.randint(0, w - ww)
-                    y1 = 0 if h == hh else self.rng.randint(0, h - hh)
+                    x1 = 0 if w == ww else rng.randint(0, w - ww)
+                    y1 = 0 if h == hh else rng.randint(0, h - hh)
                     out = img[y1:y1+hh,x1:x1+ww]
                     out = cv2.resize(out, (224,224), interpolation=cv2.INTER_CUBIC)
                     return out
